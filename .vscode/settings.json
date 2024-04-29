@@ -7,6 +7,7 @@
     ],
     "rust-analyzer.check.command": "clippy",
     "rust-analyzer.cargo.features": [
-        "loader"
+        "loader",
+        "rust-alloc"
     ],
 }

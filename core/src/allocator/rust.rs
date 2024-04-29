@@ -1,8 +1,6 @@
-use core::{
-    alloc::{alloc, dealloc, realloc, Layout},
-    mem::size_of,
-    ptr::null_mut,
-};
+use core::{alloc::Layout, mem::size_of, ptr::null_mut};
+
+use alloc::alloc::{alloc, dealloc, realloc};
 
 use super::{Allocator, RawMemPtr};
 
