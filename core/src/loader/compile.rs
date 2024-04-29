@@ -1,9 +1,14 @@
+use alloc::{
+    collections::{btree_map::Iter as BTreeMapIter, BTreeMap},
+    string::String,
+    vec::Vec,
+};
+
 use crate::{
     loader::{util::resolve_simple, Loader, Resolver},
     Ctx, Lock, Module, Mut, Ref, Result,
 };
 use core::{
-    collections::{hash_map::Iter as HashMapIter, HashMap},
     iter::FusedIterator,
     ops::{Deref, DerefMut},
 };
@@ -82,7 +87,7 @@ impl<'i, 'r: 'i> IntoIterator for &'r ResolvedModules<'i> {
 /// An iterator over resolved modules
 ///
 /// Each item is a tuple consists of module name and path.
-pub struct ResolvedModulesIter<'r>(HashMapIter<'r, String, String>);
+pub struct ResolvedModulesIter<'r>(BTreeMapIter<'r, String, String>);
 
 impl<'i> Iterator for ResolvedModulesIter<'i> {
     type Item = (&'i str, &'i str);
@@ -163,7 +168,7 @@ impl<'i> FusedIterator for CompiledBytecodesIter<'i> {}
 #[derive(Debug, Default)]
 struct CompileData {
     // { module_path: internal_name }
-    modules: HashMap<String, String>,
+    modules: BTreeMap<String, String>,
     // [ (module_path, module_bytecode) ]
     bytecodes: Vec<(String, Vec<u8>)>,
 }

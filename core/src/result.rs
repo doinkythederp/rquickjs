@@ -684,7 +684,6 @@ impl<'js> Ctx<'js> {
     /// Returns [`Error::Exception`] if there is no existing panic,
     /// otherwise continues panicking.
     pub(crate) fn raise_exception(&self) -> Error {
-        // Safety
-        unsafe { Error::Exception }
+        Error::Exception
     }
 }

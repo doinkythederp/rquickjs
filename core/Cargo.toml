@@ -42,6 +42,7 @@ default = []
 full = [
     "chrono",
     "allocator",
+    "loader",
     "either",
     "indexmap",
     "classes",
@@ -60,7 +61,7 @@ bindgen = ["rquickjs-sys/bindgen"]
 parallel = []
 
 # Enable user-defined module loader support
-# loader = ["relative-path"]
+loader = ["unix_path"]
 
 # Enable native module loading support
 # dyn-load = ["loader", "dlopen"]
@@ -107,6 +108,7 @@ compile-tests = []
 
 # Enable unstable doc-cfg feature (for docs.rs)
 doc-cfg = []
+unix_path = ["dep:unix_path"]
 
 # [dev-dependencies.futures-rs]
 # package = "futures"
@@ -130,3 +132,6 @@ features = ["full-async", "doc-cfg"]
 [dependencies]
 no_std_io = { version = "0.6.0", features = ["alloc"] }
 spin = "0.9.8"
+unix_path = { version = "1.0.1", optional = true, default-features = false, features = [
+    "alloc",
+] }

@@ -1,3 +1,5 @@
+use alloc::{string::String, vec, vec::Vec};
+
 use crate::{
     loader::{util::check_extensions, Loader},
     Ctx, Error, Module, Result,
@@ -9,9 +11,17 @@ use crate::{
 #[derive(Debug)]
 pub struct ScriptLoader {
     extensions: Vec<String>,
+    fs_read: fn(&str) -> no_std_io::io::Result<Vec<u8>>,
 }
 
 impl ScriptLoader {
+    /// Create new script loader
+    pub fn new(fs_read: fn(&str) -> no_std_io::io::Result<Vec<u8>>) -> Self {
+        Self {
+            extensions: vec!["js".into()],
+            fs_read,
+        }
+    }
     /// Add script file extension
     pub fn add_extension<X: Into<String>>(&mut self, extension: X) -> &mut Self {
         self.extensions.push(extension.into());
@@ -26,21 +36,13 @@ impl ScriptLoader {
     }
 }
 
-impl Default for ScriptLoader {
-    fn default() -> Self {
-        Self {
-            extensions: vec!["js".into()],
-        }
-    }
-}
-
 impl Loader for ScriptLoader {
     fn load<'js>(&mut self, ctx: &Ctx<'js>, path: &str) -> Result<Module<'js>> {
         if !check_extensions(path, &self.extensions) {
             return Err(Error::new_loading(path));
         }
 
-        let source: Vec<_> = core::fs::read(path)?;
+        let source: Vec<_> = (self.fs_read)(path)?;
         Module::declare(ctx.clone(), path, source)
     }
 }

@@ -1,31 +1,47 @@
+use alloc::{
+    string::{String, ToString},
+    vec,
+    vec::Vec,
+};
+use unix_path::{Path, PathBuf};
+
 use crate::{loader::Resolver, Ctx, Error, Result};
-use relative_path::{RelativePath, RelativePathBuf};
 
 /// The file module resolver
 ///
 /// This resolver can be used as the nested backing resolver in user-defined resolvers.
 #[derive(Debug)]
 pub struct FileResolver {
-    paths: Vec<RelativePathBuf>,
+    paths: Vec<PathBuf>,
     patterns: Vec<String>,
+    is_file: fn(&Path) -> bool,
 }
 
 impl FileResolver {
+    /// Create new file resolver
+    pub fn new(is_file: fn(&Path) -> bool) -> Self {
+        Self {
+            paths: vec![],
+            patterns: vec!["{}.js".into()],
+            is_file,
+        }
+    }
+
     /// Add search path for modules
-    pub fn add_path<P: Into<RelativePathBuf>>(&mut self, path: P) -> &mut Self {
+    pub fn add_path<P: Into<PathBuf>>(&mut self, path: P) -> &mut Self {
         self.paths.push(path.into());
         self
     }
 
     /// Add search path for modules
     #[must_use]
-    pub fn with_path<P: Into<RelativePathBuf>>(mut self, path: P) -> Self {
+    pub fn with_path<P: Into<PathBuf>>(mut self, path: P) -> Self {
         self.add_path(path);
         self
     }
 
     /// Add search paths for modules
-    pub fn add_paths<I: IntoIterator<Item = P>, P: Into<RelativePathBuf>>(
+    pub fn add_paths<I: IntoIterator<Item = P>, P: Into<PathBuf>>(
         &mut self,
         paths: I,
     ) -> &mut Self {
@@ -35,10 +51,7 @@ impl FileResolver {
 
     /// Add search paths for modules
     #[must_use]
-    pub fn with_paths<I: IntoIterator<Item = P>, P: Into<RelativePathBuf>>(
-        mut self,
-        paths: I,
-    ) -> Self {
+    pub fn with_paths<I: IntoIterator<Item = P>, P: Into<PathBuf>>(mut self, paths: I) -> Self {
         self.add_paths(paths);
         self
     }
@@ -77,29 +90,29 @@ impl FileResolver {
         self
     }
 
-    fn try_patterns(&self, path: &RelativePath) -> Option<RelativePathBuf> {
+    fn try_patterns(&self, path: &Path) -> Option<PathBuf> {
         if let Some(extension) = &path.extension() {
-            if !is_file(path) {
+            if !(self.is_file)(path) {
                 return None;
             }
             // check for known extensions
             self.patterns
                 .iter()
                 .find(|pattern| {
-                    let path = RelativePath::new(pattern);
+                    let path = Path::new(pattern);
                     if let Some(known_extension) = &path.extension() {
                         known_extension == extension
                     } else {
                         false
                     }
                 })
-                .map(|_| path.to_relative_path_buf())
+                .map(|_| path.to_path_buf())
         } else {
             // try with known patterns
             self.patterns.iter().find_map(|pattern| {
-                let name = pattern.replace("{}", path.file_name()?);
+                let name = pattern.replace("{}", path.file_name()?.to_str().unwrap());
                 let file = path.with_file_name(name);
-                if is_file(&file) {
+                if (self.is_file)(&file) {
                     Some(file)
                 } else {
                     None
@@ -109,26 +122,17 @@ impl FileResolver {
     }
 }
 
-impl Default for FileResolver {
-    fn default() -> Self {
-        Self {
-            paths: vec![],
-            patterns: vec!["{}.js".into()],
-        }
-    }
-}
-
 impl Resolver for FileResolver {
     fn resolve<'js>(&mut self, _ctx: &Ctx<'js>, base: &str, name: &str) -> Result<String> {
         let path = if !name.starts_with('.') {
             self.paths.iter().find_map(|path| {
-                let path = path.join_normalized(name);
+                let path = path.join(name);
                 self.try_patterns(&path)
             })
         } else {
-            let path = RelativePath::new(base);
+            let path = Path::new(base);
             let path = if let Some(dir) = path.parent() {
-                dir.join_normalized(name)
+                dir.join(name)
             } else {
                 name.into()
             };
@@ -136,10 +140,6 @@ impl Resolver for FileResolver {
         }
         .ok_or_else(|| Error::new_resolving(base, name))?;
 
-        Ok(path.to_string())
+        Ok(path.to_str().unwrap().to_string())
     }
-}
-
-fn is_file<P: AsRef<RelativePath>>(path: P) -> bool {
-    path.as_ref().to_path(".").is_file()
 }

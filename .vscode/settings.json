@@ -6,8 +6,7 @@
         "-Zbuild-std=core,alloc,compiler_builtins"
     ],
     "rust-analyzer.check.command": "clippy",
-    "rust-analyzer.cargo.features": [],
-    "rust-analyzer.check.features": [],
-    "rust-analyzer.cargo.noDefaultFeatures": true,
-    "rust-analyzer.check.noDefaultFeatures": true,
+    "rust-analyzer.cargo.features": [
+        "loader"
+    ],
 }

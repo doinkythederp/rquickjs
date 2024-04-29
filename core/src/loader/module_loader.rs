@@ -1,5 +1,7 @@
+use alloc::{collections::BTreeMap, string::String, vec::Vec};
+
 use crate::{module::ModuleDef, Ctx, Error, Module, Result};
-use core::{collections::HashMap, fmt::Debug};
+use core::fmt::Debug;
 
 use super::Loader;
 
@@ -10,7 +12,7 @@ type LoadFn = for<'js> fn(Ctx<'js>, Vec<u8>) -> Result<Module<'js>>;
 /// This loader can be used as the nested backing loader in user-defined loaders.
 #[derive(Debug, Default)]
 pub struct ModuleLoader {
-    modules: HashMap<String, LoadFn>,
+    modules: BTreeMap<String, LoadFn>,
 }
 
 impl ModuleLoader {

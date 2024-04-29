@@ -1,13 +1,14 @@
 use crate::{loader::Resolver, Ctx, Error, Result};
-use core::collections::HashSet;
-use relative_path::RelativePath;
+use alloc::collections::BTreeSet;
+use alloc::string::{String, ToString};
+use unix_path::Path;
 
 /// The builtin module resolver
 ///
 /// This resolver can also be used as the nested backing resolver in user-defined resolvers.
 #[derive(Debug, Default)]
 pub struct BuiltinResolver {
-    modules: HashSet<String>,
+    modules: BTreeSet<String>,
 }
 
 impl BuiltinResolver {
@@ -30,9 +31,9 @@ impl Resolver for BuiltinResolver {
         let full = if !name.starts_with('.') {
             name.to_string()
         } else {
-            let base = RelativePath::new(base);
+            let base = Path::new(base);
             if let Some(dir) = base.parent() {
-                dir.join_normalized(name).to_string()
+                dir.join(name).to_str().unwrap().to_string()
             } else {
                 name.to_string()
             }

@@ -1,12 +1,12 @@
 use crate::{loader::Loader, module::Declared, Ctx, Error, Module, Result};
-use core::collections::HashMap;
+use alloc::{collections::BTreeMap, string::String, vec::Vec};
 
 /// The builtin script module loader
 ///
 /// This loader can be used as the nested backing loader in user-defined loaders.
 #[derive(Debug, Default)]
 pub struct BuiltinLoader {
-    modules: HashMap<String, Vec<u8>>,
+    modules: BTreeMap<String, Vec<u8>>,
 }
 
 impl BuiltinLoader {
