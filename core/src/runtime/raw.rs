@@ -1,7 +1,6 @@
-use std::{
-    any::Any, ffi::CString, marker::PhantomData, mem, panic, ptr::NonNull,
-    result::Result as StdResult,
-};
+use core::{marker::PhantomData, mem, ptr::NonNull, result::Result as StdResult};
+
+use alloc::{boxed::Box, ffi::CString};
 
 #[cfg(feature = "allocator")]
 use crate::allocator::{Allocator, AllocatorHolder};
@@ -16,7 +15,7 @@ use super::InterruptHandler;
 /// Opaque book keeping data for Rust.
 pub(crate) struct Opaque<'js> {
     /// Used to carry a panic if a callback triggered one.
-    pub panic: Option<Box<dyn Any + Send + 'static>>,
+    // pub panic: Option<Box<dyn Any + Send + 'static>>,
 
     /// The user provided interrupt handler, if any.
     pub interrupt_handler: Option<InterruptHandler>,
@@ -30,7 +29,6 @@ pub(crate) struct Opaque<'js> {
 impl<'js> Opaque<'js> {
     pub fn new() -> Self {
         Opaque {
-            panic: None,
             interrupt_handler: None,
             #[cfg(feature = "futures")]
             spawner: None,
@@ -41,7 +39,6 @@ impl<'js> Opaque<'js> {
     #[cfg(feature = "futures")]
     pub fn with_spawner() -> Self {
         Opaque {
-            panic: None,
             interrupt_handler: None,
             #[cfg(feature = "futures")]
             spawner: Some(Spawner::new()),
@@ -229,22 +226,11 @@ impl RawRuntime {
     pub unsafe fn set_interrupt_handler(&mut self, handler: Option<InterruptHandler>) {
         unsafe extern "C" fn interrupt_handler_trampoline(
             _rt: *mut qjs::JSRuntime,
-            opaque: *mut ::std::os::raw::c_void,
-        ) -> ::std::os::raw::c_int {
-            let catch_unwind = panic::catch_unwind(move || {
+            opaque: *mut ::core::ffi::c_void,
+        ) -> ::core::ffi::c_int {
+            let should_interrupt = {
                 let opaque = &mut *(opaque as *mut Opaque);
                 opaque.interrupt_handler.as_mut().expect("handler is set")()
-            });
-            let should_interrupt = match catch_unwind {
-                Ok(should_interrupt) => should_interrupt,
-                Err(panic) => {
-                    let opaque = &mut *(opaque as *mut Opaque);
-                    opaque.panic = Some(panic);
-                    // Returning true here will cause the interpreter to raise an un-catchable exception.
-                    // The Rust code that is running the interpreter will see that exception and continue
-                    // the panic handling. See crate::result::{handle_exception, handle_panic} for details.
-                    true
-                }
             };
             should_interrupt as _
         }

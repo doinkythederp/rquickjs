@@ -1,4 +1,4 @@
-use std::{
+use core::{
     cell::{Cell, UnsafeCell},
     marker::PhantomData,
     mem::ManuallyDrop,
@@ -202,7 +202,7 @@ unsafe impl Mutability for Writable {
 
 /// A cell type for Rust classes passed to JavaScript.
 ///
-/// Implements [`RefCell`](std::cell::RefCell)-like borrow checking.
+/// Implements [`RefCell`](core::cell::RefCell)-like borrow checking.
 pub struct JsCell<'js, T: JsClass<'js>> {
     pub(crate) cell: <T::Mutable as Mutability>::Cell<T>,
 }
@@ -318,7 +318,7 @@ impl<'js, T: JsClass<'js> + 'js> OwnedBorrow<'js, T> {
     pub fn into_inner(mut self) -> Class<'js, T> {
         unsafe { <T::Mutable as Mutability>::unborrow(&self.0.get_cell().cell) };
         let res = unsafe { ManuallyDrop::take(&mut self.0) };
-        std::mem::forget(self);
+        core::mem::forget(self);
         res
     }
 }
@@ -376,7 +376,7 @@ impl<'js, T: JsClass<'js> + 'js> OwnedBorrowMut<'js, T> {
     pub fn into_inner(mut self) -> Class<'js, T> {
         unsafe { <T::Mutable as Mutability>::unborrow_mut(&self.0.get_cell().cell) };
         let res = unsafe { ManuallyDrop::take(&mut self.0) };
-        std::mem::forget(self);
+        core::mem::forget(self);
         res
     }
 }

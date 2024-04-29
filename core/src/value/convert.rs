@@ -56,7 +56,7 @@ pub trait FromAtom<'js>: Sized {
     fn from_atom(atom: Atom<'js>) -> Result<Self>;
 }
 
-/// The Rust's [`FromIterator`](std::iter::FromIterator) trait to use with [`Ctx`]
+/// The Rust's [`FromIterator`](core::iter::FromIterator) trait to use with [`Ctx`]
 pub trait FromIteratorJs<'js, A>: Sized {
     type Item;
 

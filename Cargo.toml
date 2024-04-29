@@ -36,15 +36,25 @@ members = [
     "sys",
     "core",
     "macro",
-    "examples/native-module",
-    "examples/module-loader",
+    # "examples/native-module",
+    # "examples/module-loader",
 ]
 
 [features]
 default = ["classes", "properties"]
 
 # Almost all features excluding "parallel" and support for async runtimes
-full = ["chrono", "loader", "allocator", "dyn-load", "either", "indexmap", "classes", "properties", "array-buffer", "macro", "phf"]
+full = [
+    "chrono",
+    "allocator",
+    "either",
+    "indexmap",
+    "classes",
+    "properties",
+    "array-buffer",
+    "macro",
+    "phf",
+]
 
 # Almost all features excluding "parallel"
 full-async = ["full", "futures"]
@@ -67,12 +77,6 @@ bindgen = ["rquickjs-core/bindgen", "rquickjs-macro?/bindgen"]
 
 # Enable support of parallel execution
 parallel = ["rquickjs-core/parallel"]
-
-# Enable user-defined module loader support
-loader = ["rquickjs-core/loader"]
-
-# Enable native module loading support
-dyn-load = ["rquickjs-core/dyn-load"]
 
 # Enable user-defined allocator support
 allocator = ["rquickjs-core/allocator"]
@@ -122,8 +126,7 @@ compile-tests = ["rquickjs-core/compile-tests"]
 doc-cfg = ["rquickjs-core/doc-cfg"]
 
 [dev-dependencies]
-trybuild = "1.0.82"
+# trybuild = "1.0.82"
 
 [package.metadata.docs.rs]
 features = ["full-async", "parallel", "doc-cfg"]
-

@@ -34,20 +34,20 @@ optional = true
 version = "0.6.0"
 path = "../sys"
 
-[dependencies.dlopen]
-version = "0.1"
-optional = true
-
-[dependencies.relative-path]
-version = "1.9"
-optional = true
-
 
 [features]
 default = []
 
 # Almost all features excluding "parallel" and support for async runtimes
-full = ["chrono", "loader", "allocator", "dyn-load", "either", "indexmap", "classes", "properties", "array-buffer"]
+full = [
+    "chrono",
+    "allocator",
+    "either",
+    "indexmap",
+    "classes",
+    "properties",
+    "array-buffer",
+]
 
 # Almost all features excluding "parallel"
 full-async = ["full", "futures"]
@@ -60,10 +60,10 @@ bindgen = ["rquickjs-sys/bindgen"]
 parallel = []
 
 # Enable user-defined module loader support
-loader = ["relative-path"]
+# loader = ["relative-path"]
 
 # Enable native module loading support
-dyn-load = ["loader", "dlopen"]
+# dyn-load = ["loader", "dlopen"]
 
 # Enable user-defined allocator support
 allocator = []
@@ -108,22 +108,25 @@ compile-tests = []
 # Enable unstable doc-cfg feature (for docs.rs)
 doc-cfg = []
 
-[dev-dependencies.futures-rs]
-package = "futures"
-version = "0.3"
+# [dev-dependencies.futures-rs]
+# package = "futures"
+# version = "0.3"
 
-[dev-dependencies.tokio]
-version = "1.0"
-default-features = false
-features = ["rt", "rt-multi-thread", "time", "macros", "sync"]
+# [dev-dependencies.tokio]
+# version = "1.0"
+# default-features = false
+# features = ["rt", "rt-multi-thread", "time", "macros", "sync"]
 
 [dev-dependencies.rquickjs]
 path = ".."
 
 [dev-dependencies]
-approx = "0.5"
-trybuild = "1.0.23"
+# approx = "0.5"
+# trybuild = "1.0.23"
 
 [package.metadata.docs.rs]
 features = ["full-async", "doc-cfg"]
 
+[dependencies]
+no_std_io = { version = "0.6.0", features = ["alloc"] }
+spin = "0.9.8"

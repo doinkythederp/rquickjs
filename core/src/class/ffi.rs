@@ -1,4 +1,6 @@
-use std::mem;
+use core::mem;
+
+use alloc::boxed::Box;
 
 use crate::{class::JsCell, qjs};
 

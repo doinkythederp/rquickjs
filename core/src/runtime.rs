@@ -3,6 +3,7 @@
 pub(crate) mod raw;
 
 mod base;
+use alloc::boxed::Box;
 pub use base::{Runtime, WeakRuntime};
 
 /// The type of the interrupt handler.

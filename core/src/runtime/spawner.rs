@@ -1,4 +1,4 @@
-use std::{
+use core::{
     future::Future,
     pin::{pin, Pin},
     task::{ready, Poll, Waker},
@@ -51,7 +51,7 @@ pub struct SpawnFuture<'a>(&'a Spawner);
 impl<'a> Future for SpawnFuture<'a> {
     type Output = bool;
 
-    fn poll(self: Pin<&mut Self>, cx: &mut std::task::Context<'_>) -> Poll<Self::Output> {
+    fn poll(self: Pin<&mut Self>, cx: &mut core::task::Context<'_>) -> Poll<Self::Output> {
         unsafe { self.0.schedular.poll(cx) }
     }
 }
@@ -87,7 +87,7 @@ impl DriveFuture {
 impl Future for DriveFuture {
     type Output = ();
 
-    fn poll(self: Pin<&mut Self>, cx: &mut std::task::Context<'_>) -> Poll<Self::Output> {
+    fn poll(self: Pin<&mut Self>, cx: &mut core::task::Context<'_>) -> Poll<Self::Output> {
         // Safety: We manually ensure that pinned values remained properly pinned.
         let this = unsafe { self.get_unchecked_mut() };
         loop {

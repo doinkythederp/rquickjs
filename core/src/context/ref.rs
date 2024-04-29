@@ -1,6 +1,6 @@
-use std::ops::Deref;
+use core::ops::Deref;
 #[cfg(feature = "parallel")]
-use std::sync::Arc;
+use core::sync::Arc;
 
 /// A wrapper around an inner type which implements cloning with the underlying type if parallel
 /// feature is disabled and with an Arc otherwise.

@@ -23,6 +23,7 @@ version = "0.5"
 optional = true
 
 [features]
+default = ["bindgen"]
 bindgen = ["bindgen-rs"]
 
 # Debug logging

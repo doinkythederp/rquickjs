@@ -1,6 +1,6 @@
 use crate::{loader::Resolver, Ctx, Error, Result};
+use core::collections::HashSet;
 use relative_path::RelativePath;
-use std::collections::HashSet;
 
 /// The builtin module resolver
 ///

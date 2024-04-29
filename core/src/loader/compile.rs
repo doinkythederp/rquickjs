@@ -2,7 +2,7 @@ use crate::{
     loader::{util::resolve_simple, Loader, Resolver},
     Ctx, Lock, Module, Mut, Ref, Result,
 };
-use std::{
+use core::{
     collections::{hash_map::Iter as HashMapIter, HashMap},
     iter::FusedIterator,
     ops::{Deref, DerefMut},

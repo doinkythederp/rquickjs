@@ -1,5 +1,5 @@
 use crate::{loader::Loader, module::Declared, Ctx, Error, Module, Result};
-use std::collections::HashMap;
+use core::collections::HashMap;
 
 /// The builtin script module loader
 ///

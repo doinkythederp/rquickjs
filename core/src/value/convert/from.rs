@@ -2,14 +2,14 @@ use crate::{
     convert::List, Array, Ctx, Error, FromAtom, FromJs, Object, Result, StdString, String, Type,
     Value,
 };
-use std::{
-    cell::{Cell, RefCell},
-    collections::{BTreeMap, BTreeSet, HashMap, HashSet, LinkedList, VecDeque},
-    hash::{BuildHasher, Hash},
+use alloc::{
+    boxed::Box,
+    collections::{BTreeMap, BTreeSet, LinkedList, VecDeque},
     rc::Rc,
-    sync::{Arc, Mutex, RwLock},
-    time::{Duration, SystemTime},
+    sync::Arc,
+    vec::Vec,
 };
+use core::cell::{Cell, RefCell};
 
 #[cfg(feature = "either")]
 use either::{Either, Left, Right};
@@ -262,8 +262,8 @@ from_js_impls! {
     Arc,
     Cell,
     RefCell,
-    Mutex,
-    RwLock,
+    // Mutex,
+    // RwLock,
 }
 
 from_js_impls! {
@@ -295,7 +295,7 @@ from_js_impls! {
     /// Convert from JS array to Rust linked list
     LinkedList,
     /// Convert from JS array to Rust hash set
-    HashSet {S: Default + BuildHasher} (Eq + Hash),
+    // HashSet {S: Default + BuildHasher} (Eq + Hash),
     /// Convert from JS array to Rust btree set
     BTreeSet (Eq + Ord),
     /// Convert from JS array to Rust index set
@@ -307,7 +307,7 @@ from_js_impls! {
 from_js_impls! {
     map:
     /// Convert from JS object to Rust hash map
-    HashMap {S: Default + BuildHasher} (Eq + Hash),
+    // HashMap {S: Default + BuildHasher} (Eq + Hash),
     /// Convert from JS object to Rust btree map
     BTreeMap (Eq + Ord),
     /// Convert from JS object to Rust index map
@@ -322,42 +322,42 @@ impl<'js> FromJs<'js> for f32 {
     }
 }
 
-fn date_to_millis<'js>(ctx: &Ctx<'js>, value: Value<'js>) -> Result<i64> {
-    let global = ctx.globals();
-    let date_ctor: Object = global.get("Date")?;
+// fn date_to_millis<'js>(ctx: &Ctx<'js>, value: Value<'js>) -> Result<i64> {
+//     let global = ctx.globals();
+//     let date_ctor: Object = global.get("Date")?;
 
-    let value = Object::from_value(value)?;
+//     let value = Object::from_value(value)?;
 
-    if !value.is_instance_of(&date_ctor) {
-        return Err(Error::new_from_js("Object", "Date"));
-    }
+//     if !value.is_instance_of(&date_ctor) {
+//         return Err(Error::new_from_js("Object", "Date"));
+//     }
 
-    let get_time_fn: crate::Function = value.get("getTime")?;
+//     let get_time_fn: crate::Function = value.get("getTime")?;
 
-    get_time_fn.call((crate::function::This(value),))
-}
+//     get_time_fn.call((crate::function::This(value),))
+// }
 
-impl<'js> FromJs<'js> for SystemTime {
-    fn from_js(ctx: &Ctx<'js>, value: Value<'js>) -> Result<SystemTime> {
-        let millis = date_to_millis(ctx, value)?;
+// impl<'js> FromJs<'js> for SystemTime {
+//     fn from_js(ctx: &Ctx<'js>, value: Value<'js>) -> Result<SystemTime> {
+//         let millis = date_to_millis(ctx, value)?;
 
-        if millis >= 0 {
-            // since unix epoch
-            SystemTime::UNIX_EPOCH
-                .checked_add(Duration::from_millis(millis as _))
-                .ok_or_else(|| {
-                    Error::new_from_js_message("Date", "SystemTime", "Timestamp too big")
-                })
-        } else {
-            // before unix epoch
-            SystemTime::UNIX_EPOCH
-                .checked_sub(Duration::from_millis((-millis) as _))
-                .ok_or_else(|| {
-                    Error::new_from_js_message("Date", "SystemTime", "Timestamp too small")
-                })
-        }
-    }
-}
+//         if millis >= 0 {
+//             // since unix epoch
+//             SystemTime::UNIX_EPOCH
+//                 .checked_add(Duration::from_millis(millis as _))
+//                 .ok_or_else(|| {
+//                     Error::new_from_js_message("Date", "SystemTime", "Timestamp too big")
+//                 })
+//         } else {
+//             // before unix epoch
+//             SystemTime::UNIX_EPOCH
+//                 .checked_sub(Duration::from_millis((-millis) as _))
+//                 .ok_or_else(|| {
+//                     Error::new_from_js_message("Date", "SystemTime", "Timestamp too small")
+//                 })
+//         }
+//     }
+// }
 
 macro_rules! chrono_from_js_impls {
     ($($type:ident;)+) => {
@@ -389,7 +389,7 @@ mod test {
     #[test]
     fn js_to_system_time() {
         use crate::{Context, Runtime};
-        use std::time::{Duration, SystemTime};
+        use core::time::{Duration, SystemTime};
 
         let runtime = Runtime::new().unwrap();
         let ctx = Context::full(&runtime).unwrap();

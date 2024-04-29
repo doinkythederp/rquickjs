@@ -2,7 +2,7 @@ use crate::{
     atom::PredefinedAtom, qjs, ArrayBuffer, Ctx, Error, FromJs, Function, IntoJs, Object, Outlive,
     Result, Value,
 };
-use std::{
+use core::{
     fmt,
     marker::PhantomData,
     mem::{self, MaybeUninit},

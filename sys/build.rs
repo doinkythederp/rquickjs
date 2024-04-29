@@ -153,6 +153,7 @@ fn main() {
         ("_GNU_SOURCE".into(), None),
         ("CONFIG_VERSION".into(), Some("\"2020-01-19\"")),
         ("CONFIG_BIGNUM".into(), None),
+        ("__TM_GMTOFF".into(), Some("tm_gmtoff")),
     ];
 
     if env::var("CARGO_CFG_TARGET_OS").unwrap() == "windows"
@@ -167,10 +168,11 @@ fn main() {
         }
     }
 
+    // disable pthreads because no_std
+    defines.push(("EMSCRIPTEN".into(), Some("1")));
     if env::var("CARGO_CFG_TARGET_OS").unwrap() == "wasi" {
         // pretend we're emscripten - there are already ifdefs that match
         // also, wasi doesn't ahve FE_DOWNWARD or FE_UPWARD
-        defines.push(("EMSCRIPTEN".into(), Some("1")));
         defines.push(("FE_DOWNWARD".into(), Some("0")));
         defines.push(("FE_UPWARD".into(), Some("0")));
     }
@@ -305,6 +307,7 @@ where
     K: AsRef<str> + 'a,
     V: AsRef<str> + 'a,
 {
+    env::set_var("TARGET", "armv7a-none-eabi"); // force armv7a-none-eabi target for bindgen
     let target = env::var("TARGET").unwrap();
     let out_dir = out_dir.as_ref();
     let header_file = header_file.as_ref();
@@ -325,6 +328,7 @@ where
     println!("Bindings for target: {}", target);
 
     let mut builder = bindgen_rs::Builder::default()
+        .use_core()
         .detect_include_paths(true)
         .clang_arg("-xc")
         .clang_arg("-v")
@@ -336,6 +340,8 @@ where
         .allowlist_function("JS.*")
         .allowlist_function("__JS.*")
         .allowlist_var("JS.*")
+        .clang_arg("-I/opt/homebrew/Cellar/arm-gcc-bin@10/10.3-2021.10_1/bin/../lib/gcc/arm-none-eabi/10.3.1/include")
+        .clang_arg("-I/opt/homebrew/Cellar/arm-gcc-bin@10/10.3-2021.10_1/bin/../lib/gcc/arm-none-eabi/10.3.1/../../../../arm-none-eabi/include")
         .opaque_type("FILE")
         .blocklist_type("FILE")
         .blocklist_function("JS_DumpMemoryUsage");

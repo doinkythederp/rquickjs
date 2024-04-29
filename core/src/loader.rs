@@ -1,6 +1,6 @@
 //! Loaders and resolvers for loading JS modules.
 
-use std::{ffi::CStr, ptr};
+use core::{ffi::CStr, ptr};
 
 use crate::{module::Declared, qjs, Ctx, Module, Result};
 
@@ -193,7 +193,7 @@ macro_rules! loader_impls {
                 #[allow(non_snake_case)]
                 #[allow(unused_mut)]
                 fn resolve<'js>(&mut self, _ctx: &Ctx<'js>, base: &str, name: &str) -> Result<String> {
-                    let mut messages = Vec::<std::string::String>::new();
+                    let mut messages = Vec::<core::string::String>::new();
                     let ($($t,)*) = self;
                     $(
                         match $t.resolve(_ctx, base, name) {
@@ -220,7 +220,7 @@ macro_rules! loader_impls {
                 #[allow(non_snake_case)]
                 #[allow(unused_mut)]
                 fn load<'js>(&mut self, _ctx: &Ctx<'js>, name: &str) -> Result<Module<'js, Declared>> {
-                    let mut messages = Vec::<std::string::String>::new();
+                    let mut messages = Vec::<core::string::String>::new();
                     let ($($t,)*) = self;
                     $(
                         match $t.load(_ctx, name) {

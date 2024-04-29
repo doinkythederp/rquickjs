@@ -1,0 +1,13 @@
+{
+    "rust-analyzer.cargo.allTargets": false,
+    "rust-analyzer.check.allTargets": false,
+    "rust-analyzer.cargo.target": "${workspaceFolder}/armv7a-vexos-eabi.json",
+    "rust-analyzer.cargo.extraArgs": [
+        "-Zbuild-std=core,alloc,compiler_builtins"
+    ],
+    "rust-analyzer.check.command": "clippy",
+    "rust-analyzer.cargo.features": [],
+    "rust-analyzer.check.features": [],
+    "rust-analyzer.cargo.noDefaultFeatures": true,
+    "rust-analyzer.check.noDefaultFeatures": true,
+}

@@ -5,6 +5,10 @@
 
 #![allow(clippy::needless_lifetimes)]
 #![cfg_attr(feature = "doc-cfg", feature(doc_cfg))]
+#![feature(error_in_core)]
+#![no_std]
+
+extern crate alloc;
 
 //#[doc(hidden)]
 pub mod qjs {
@@ -34,7 +38,7 @@ macro_rules! cstr {
             }
         }
         no_null($str.as_bytes());
-        unsafe { std::ffi::CStr::from_bytes_with_nul_unchecked(concat!($str, "\0").as_bytes()) }
+        unsafe { core::ffi::CStr::from_bytes_with_nul_unchecked(concat!($str, "\0").as_bytes()) }
     }};
 }
 
@@ -71,7 +75,8 @@ pub use class::Class;
 #[cfg_attr(feature = "doc-cfg", doc(cfg(feature = "array-buffer")))]
 pub use value::{ArrayBuffer, TypedArray};
 
-pub(crate) use std::{result::Result as StdResult, string::String as StdString};
+pub(crate) use alloc::string::String as StdString;
+pub(crate) use core::result::Result as StdResult;
 
 #[cfg(feature = "allocator")]
 #[cfg_attr(feature = "doc-cfg", doc(cfg(feature = "allocator")))]

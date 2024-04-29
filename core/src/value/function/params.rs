@@ -1,8 +1,10 @@
+use alloc::vec::Vec;
+
 use crate::{
     function::{Exhaustive, Flat, FuncArg, Opt, Rest, This},
     qjs, Ctx, FromJs, Result, Value,
 };
-use std::slice;
+use core::slice;
 
 /// A struct which contains the values a callback is called with.
 ///

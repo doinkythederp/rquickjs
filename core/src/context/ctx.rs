@@ -1,19 +1,19 @@
-use std::{
-    ffi::{CStr, CString},
-    fs,
+use core::{
+    ffi::CStr,
     mem::{self, MaybeUninit},
-    path::Path,
     ptr::NonNull,
 };
 
 #[cfg(feature = "futures")]
-use std::future::Future;
+use core::future::Future;
+
+use alloc::{ffi::CString, vec::Vec};
 
 #[cfg(feature = "futures")]
 use crate::AsyncContext;
 use crate::{
-    atom::PredefinedAtom, markers::Invariant, qjs, runtime::raw::Opaque, Atom, Context, Error,
-    FromJs, Function, IntoJs, Object, Promise, Result, String, Value,
+    atom::PredefinedAtom, markers::Invariant, qjs, Atom, Context, Error, FromJs, Function, IntoJs,
+    Object, Promise, Result, String, Value,
 };
 
 /// Eval options.
@@ -172,30 +172,30 @@ impl<'js> Ctx<'js> {
         })
     }
 
-    /// Evaluate a script directly from a file.
-    pub fn eval_file<V: FromJs<'js>, P: AsRef<Path>>(&self, path: P) -> Result<V> {
-        self.eval_file_with_options(path, Default::default())
-    }
+    // /// Evaluate a script directly from a file.
+    // pub fn eval_file<V: FromJs<'js>, P: AsRef<Path>>(&self, path: P) -> Result<V> {
+    //     self.eval_file_with_options(path, Default::default())
+    // }
 
-    pub fn eval_file_with_options<V: FromJs<'js>, P: AsRef<Path>>(
-        &self,
-        path: P,
-        options: EvalOptions,
-    ) -> Result<V> {
-        let buffer = fs::read(path.as_ref())?;
-        let file_name = CString::new(
-            path.as_ref()
-                .file_name()
-                .unwrap()
-                .to_string_lossy()
-                .into_owned(),
-        )?;
+    // pub fn eval_file_with_options<V: FromJs<'js>, P: AsRef<Path>>(
+    //     &self,
+    //     path: P,
+    //     options: EvalOptions,
+    // ) -> Result<V> {
+    //     let buffer = fs::read(path.as_ref())?;
+    //     let file_name = CString::new(
+    //         path.as_ref()
+    //             .file_name()
+    //             .unwrap()
+    //             .to_string_lossy()
+    //             .into_owned(),
+    //     )?;
 
-        V::from_js(self, unsafe {
-            let val = self.eval_raw(buffer, file_name.as_c_str(), options.to_flag())?;
-            Value::from_js_value(self.clone(), val)
-        })
-    }
+    //     V::from_js(self, unsafe {
+    //         let val = self.eval_raw(buffer, file_name.as_c_str(), options.to_flag())?;
+    //         Value::from_js_value(self.clone(), val)
+    //     })
+    // }
 
     /// Returns the global object of this context.
     pub fn globals(&self) -> Object<'js> {
@@ -387,10 +387,10 @@ impl<'js> Ctx<'js> {
         res != 0
     }
 
-    pub(crate) unsafe fn get_opaque(&self) -> *mut Opaque<'js> {
-        let rt = qjs::JS_GetRuntime(self.ctx.as_ptr());
-        qjs::JS_GetRuntimeOpaque(rt).cast::<Opaque>()
-    }
+    // pub(crate) unsafe fn get_opaque(&self) -> *mut Opaque<'js> {
+    //     let rt = qjs::JS_GetRuntime(self.ctx.as_ptr());
+    //     qjs::JS_GetRuntimeOpaque(rt).cast::<Opaque>()
+    // }
 
     /// Spawn future using configured async runtime
     #[cfg(feature = "futures")]
@@ -428,7 +428,7 @@ impl<'js> Ctx<'js> {
     }
 
     pub fn script_or_module_name(&self, stack_level: isize) -> Option<Atom<'js>> {
-        let stack_level = std::os::raw::c_int::try_from(stack_level).unwrap();
+        let stack_level = core::ffi::c_int::try_from(stack_level).unwrap();
         let atom = unsafe { qjs::JS_GetScriptOrModuleName(self.as_ptr(), stack_level) };
         if PredefinedAtom::Null as u32 == atom {
             unsafe { qjs::JS_FreeAtom(self.as_ptr(), atom) };

@@ -1,0 +1,22 @@
+{
+    "configurations": [
+        {
+            "name": "Mac",
+            "includePath": [
+                "/opt/homebrew/Cellar/arm-gcc-bin@10/10.3-2021.10_1/bin/../lib/gcc/arm-none-eabi/10.3.1/include",
+                "/opt/homebrew/Cellar/arm-gcc-bin@10/10.3-2021.10_1/bin/../lib/gcc/arm-none-eabi/10.3.1/../../../../arm-none-eabi/include"
+            ],
+            "defines": [
+                "__TM_GMTOFF=tm_gmtoff",
+            ],
+            "macFrameworkPath": [
+                "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks"
+            ],
+            "compilerPath": "/usr/bin/clang",
+            "cStandard": "c17",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "macos-clang-arm64"
+        }
+    ],
+    "version": 4
+}

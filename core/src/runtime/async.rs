@@ -1,4 +1,4 @@
-use std::{
+use core::{
     ffi::CString,
     ptr::NonNull,
     result::Result as StdResult,
@@ -6,7 +6,7 @@ use std::{
 };
 
 #[cfg(feature = "parallel")]
-use std::sync::mpsc::{self, Receiver, Sender};
+use core::sync::mpsc::{self, Receiver, Sender};
 
 use async_lock::Mutex;
 
@@ -367,7 +367,7 @@ macro_rules! async_test_case {
 
 #[cfg(test)]
 mod test {
-    use std::time::Duration;
+    use core::time::Duration;
 
     use crate::*;
 
@@ -393,7 +393,7 @@ mod test {
     });
 
     async_test_case!(drive => (rt,ctx){
-        use std::sync::{Arc, atomic::{Ordering,AtomicUsize}};
+        use core::sync::{Arc, atomic::{Ordering,AtomicUsize}};
 
         #[cfg(feature = "parallel")]
         tokio::spawn(rt.drive());
@@ -420,7 +420,7 @@ mod test {
     });
 
     async_test_case!(no_drive => (rt,ctx){
-        use std::sync::{Arc, atomic::{Ordering,AtomicUsize}};
+        use core::sync::{Arc, atomic::{Ordering,AtomicUsize}};
 
         let number = Arc::new(AtomicUsize::new(0));
         let number_clone = number.clone();
@@ -438,7 +438,7 @@ mod test {
     });
 
     async_test_case!(idle => (rt,ctx){
-        use std::sync::{Arc, atomic::{Ordering,AtomicUsize}};
+        use core::sync::{Arc, atomic::{Ordering,AtomicUsize}};
 
         let number = Arc::new(AtomicUsize::new(0));
         let number_clone = number.clone();

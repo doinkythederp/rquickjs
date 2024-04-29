@@ -1,13 +1,12 @@
-use std::{
-    error::Error as StdError,
-    ffi::{CString, FromBytesWithNulError, NulError},
+use alloc::{
+    ffi::{CString, NulError},
     fmt::{self, Display, Formatter, Result as FmtResult},
-    io::Error as IoError,
-    panic,
-    panic::UnwindSafe,
+    format,
     str::{FromStr, Utf8Error},
-    string::FromUtf8Error,
+    string::{FromUtf8Error, ToString},
 };
+use core::{error::Error as StdError, ffi::FromBytesWithNulError, panic, panic::UnwindSafe};
+use no_std_io::io::Error as IoError;
 
 #[cfg(feature = "futures")]
 use crate::context::AsyncContext;
@@ -52,7 +51,7 @@ impl fmt::Display for BorrowError {
     }
 }
 
-impl std::error::Error for BorrowError {}
+impl core::error::Error for BorrowError {}
 
 /// Error type of the library.
 #[derive(Debug)]
@@ -666,15 +665,7 @@ impl<'js> Ctx<'js> {
     where
         F: FnOnce() -> qjs::JSValue + UnwindSafe,
     {
-        unsafe {
-            match panic::catch_unwind(f) {
-                Ok(x) => x,
-                Err(e) => {
-                    (*self.get_opaque()).panic = Some(e);
-                    qjs::JS_Throw(self.as_ptr(), qjs::JS_MKVAL(qjs::JS_TAG_EXCEPTION, 0))
-                }
-            }
-        }
+        f()
     }
 
     /// Handle possible exceptions in [`JSValue`]'s and turn them into errors
@@ -686,9 +677,6 @@ impl<'js> Ctx<'js> {
         if qjs::JS_VALUE_GET_NORM_TAG(js_val) != qjs::JS_TAG_EXCEPTION {
             Ok(js_val)
         } else {
-            if let Some(x) = (*self.get_opaque()).panic.take() {
-                panic::resume_unwind(x)
-            }
             Err(Error::Exception)
         }
     }
@@ -697,11 +685,6 @@ impl<'js> Ctx<'js> {
     /// otherwise continues panicking.
     pub(crate) fn raise_exception(&self) -> Error {
         // Safety
-        unsafe {
-            if let Some(x) = (*self.get_opaque()).panic.take() {
-                panic::resume_unwind(x)
-            }
-            Error::Exception
-        }
+        unsafe { Error::Exception }
     }
 }

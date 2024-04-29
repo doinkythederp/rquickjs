@@ -4,8 +4,8 @@ use crate::{
     function::StaticJsFn, qjs, value::Constructor, Ctx, Error, FromJs, IntoJs, Object, Outlive,
     Result, Value,
 };
-use std::{
-    ffi::CString,
+use alloc::{boxed::Box, ffi::CString};
+use core::{
     hash::Hash,
     marker::PhantomData,
     ops::Deref,
@@ -73,7 +73,7 @@ impl<'js, C: JsClass<'js>> PartialEq for Class<'js, C> {
 impl<'js, C: JsClass<'js>> Eq for Class<'js, C> {}
 
 impl<'js, C: JsClass<'js>> Hash for Class<'js, C> {
-    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+    fn hash<H: core::hash::Hasher>(&self, state: &mut H) {
         self.0.hash(state)
     }
 }
@@ -190,7 +190,7 @@ impl<'js, C: JsClass<'js>> Class<'js, C> {
         let class_id = C::class_id().get();
         if 0 == unsafe { qjs::JS_IsRegisteredClass(rt, class_id) } {
             let class_name = CString::new(C::NAME).expect("class name has an internal null byte");
-            let finalizer = if std::mem::needs_drop::<JsCell<C>>() {
+            let finalizer = if core::mem::needs_drop::<JsCell<C>>() {
                 Some(ffi::finalizer::<C> as unsafe extern "C" fn(*mut qjs::JSRuntime, qjs::JSValue))
             } else {
                 None
@@ -229,7 +229,7 @@ impl<'js, C: JsClass<'js>> Class<'js, C> {
 
     /// Borrow the Rust class type.
     ///
-    /// JavaScript classes behave similar to [`Rc`](std::rc::Rc) in Rust, you can essentially think
+    /// JavaScript classes behave similar to [`Rc`](core::rc::Rc) in Rust, you can essentially think
     /// of a class object as a `Rc<RefCell<C>>` and with similar borrowing functionality.
     ///
     /// # Panic
@@ -241,7 +241,7 @@ impl<'js, C: JsClass<'js>> Class<'js, C> {
 
     /// Borrow the Rust class type mutably.
     ///
-    /// JavaScript classes behave similar to [`Rc`](std::rc::Rc) in Rust, you can essentially think
+    /// JavaScript classes behave similar to [`Rc`](core::rc::Rc) in Rust, you can essentially think
     /// of a class object as a `Rc<RefCell<C>>` and with similar borrowing functionality.
     ///
     /// # Panic
@@ -254,7 +254,7 @@ impl<'js, C: JsClass<'js>> Class<'js, C> {
 
     /// Try to borrow the Rust class type.
     ///
-    /// JavaScript classes behave similar to [`Rc`](std::rc::Rc) in Rust, you can essentially think
+    /// JavaScript classes behave similar to [`Rc`](core::rc::Rc) in Rust, you can essentially think
     /// of a class object as a `Rc<RefCell<C>>` and with similar borrowing functionality.
     ///
     /// This returns an error when the class is already borrowed mutably.
@@ -265,7 +265,7 @@ impl<'js, C: JsClass<'js>> Class<'js, C> {
 
     /// Try to borrow the Rust class type mutably.
     ///
-    /// JavaScript classes behave similar to [`Rc`](std::rc::Rc) in Rust, you can essentially think
+    /// JavaScript classes behave similar to [`Rc`](core::rc::Rc) in Rust, you can essentially think
     /// of a class object as a `Rc<RefCell<C>>` and with similar borrowing functionality.
     ///
     /// This returns an error when the class is already borrowed mutably, immutably or the class
@@ -344,7 +344,7 @@ impl<'js> Object<'js> {
     }
 
     /// Turn the object into the class if it is an instance of that class.
-    pub fn into_class<C: JsClass<'js>>(&self) -> std::result::Result<Class<'js, C>, &Self> {
+    pub fn into_class<C: JsClass<'js>>(&self) -> core::result::Result<Class<'js, C>, &Self> {
         if self.instance_of::<C>() {
             Ok(Class(self.clone(), PhantomData))
         } else {
@@ -357,7 +357,7 @@ impl<'js> Object<'js> {
         if self.instance_of::<C>() {
             // SAFETY:
             // Safe because class is a transparent wrapper
-            unsafe { Some(std::mem::transmute::<&Object<'js>, &Class<'js, C>>(self)) }
+            unsafe { Some(core::mem::transmute::<&Object<'js>, &Class<'js, C>>(self)) }
         } else {
             None
         }
@@ -378,7 +378,7 @@ impl<'js, C: JsClass<'js>> IntoJs<'js> for Class<'js, C> {
 
 #[cfg(test)]
 mod test {
-    use std::sync::{
+    use core::sync::{
         atomic::{AtomicBool, Ordering},
         Arc,
     };

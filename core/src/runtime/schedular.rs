@@ -1,4 +1,4 @@
-use std::{
+use core::{
     cell::{Cell, UnsafeCell},
     future::Future,
     mem::{offset_of, ManuallyDrop},
@@ -23,7 +23,7 @@ mod atomic_waker;
 
 use self::queue::NodeHeader;
 
-use std::ops::{Deref, DerefMut};
+use core::ops::{Deref, DerefMut};
 
 pub struct Defer<T, F: FnOnce(&mut T)> {
     value: ManuallyDrop<T>,
@@ -278,7 +278,7 @@ impl Schedular {
                 queue::Pop::Empty => break,
                 queue::Pop::Value(x) => x,
                 queue::Pop::Inconsistant => {
-                    std::thread::yield_now();
+                    core::thread::yield_now();
                     continue;
                 }
             };

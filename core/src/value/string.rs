@@ -1,5 +1,5 @@
 use crate::{qjs, Ctx, Error, Result, StdString, Value};
-use std::{mem, slice, str};
+use core::{mem, slice, str};
 
 /// Rust representation of a JavaScript string.
 #[derive(Debug, Clone, PartialEq, Hash)]

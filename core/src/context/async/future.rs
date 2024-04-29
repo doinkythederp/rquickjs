@@ -1,4 +1,4 @@
-use std::{
+use core::{
     future::Future,
     mem::{self, ManuallyDrop},
     pin::{pin, Pin},

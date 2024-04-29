@@ -1,6 +1,6 @@
 //! Javascript promises and future integration.
 #[cfg(feature = "futures")]
-use std::{
+use core::{
     cell::RefCell,
     future::Future,
     marker::PhantomData,
@@ -341,7 +341,7 @@ where
 
 #[cfg(test)]
 mod test {
-    use std::time::Duration;
+    use core::time::Duration;
 
     use super::*;
     #[cfg(feature = "futures")]

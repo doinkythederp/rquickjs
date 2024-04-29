@@ -40,7 +40,7 @@ impl Loader for ScriptLoader {
             return Err(Error::new_loading(path));
         }
 
-        let source: Vec<_> = std::fs::read(path)?;
+        let source: Vec<_> = core::fs::read(path)?;
         Module::declare(ctx.clone(), path, source)
     }
 }

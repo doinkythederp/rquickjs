@@ -1,16 +1,16 @@
 //! Types for loading and handling JS modules.
 
-use std::{
-    ffi::{CStr, CString},
+use crate::{
+    atom::PredefinedAtom, qjs, Atom, Context, Ctx, Error, FromAtom, FromJs, IntoAtom, IntoJs,
+    Object, Promise, Result, Value,
+};
+use alloc::{ffi::CString, vec::Vec};
+use core::{
+    ffi::CStr,
     marker::PhantomData,
     mem::MaybeUninit,
     ptr::{self, NonNull},
     slice,
-};
-
-use crate::{
-    atom::PredefinedAtom, qjs, Atom, Context, Ctx, Error, FromAtom, FromJs, IntoAtom, IntoJs,
-    Object, Promise, Result, Value,
 };
 
 /// Helper macro to provide module init function.
@@ -633,7 +633,7 @@ mod test {
 
             promise.finish::<()>().unwrap();
 
-            assert_eq!(ns.get::<_, std::string::String>("res").unwrap(), "OK");
+            assert_eq!(ns.get::<_, core::string::String>("res").unwrap(), "OK");
         });
     }
 

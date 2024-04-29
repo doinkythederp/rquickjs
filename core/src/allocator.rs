@@ -1,7 +1,7 @@
 //! Tools for using different allocators with QuickJS.
 
 use crate::qjs;
-use std::ptr;
+use core::ptr;
 
 mod rust;
 pub use rust::RustAllocator;

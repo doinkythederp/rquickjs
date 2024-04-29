@@ -13,6 +13,7 @@ mod into_func;
 mod params;
 mod types;
 
+use alloc::{borrow::ToOwned, boxed::Box};
 pub use args::{Args, IntoArg, IntoArgs};
 pub use ffi::{RustFunction, StaticJsFn};
 pub use params::{FromParam, FromParams, ParamRequirement, Params, ParamsAccessor};
@@ -479,7 +480,7 @@ mod test {
 
     #[test]
     fn const_callback() {
-        use std::sync::{Arc, Mutex};
+        use core::sync::{Arc, Mutex};
         test_with(|ctx| {
             #[allow(clippy::mutex_atomic)]
             let called = Arc::new(Mutex::new(false));
@@ -743,7 +744,7 @@ mod test {
     fn call_rust_fn_with_var_args() {
         let res: Vec<i8> = test_with(|ctx| {
             let func = Function::new(ctx.clone(), |args: Rest<i8>| {
-                use std::iter::once;
+                use core::iter::once;
                 once(args.len() as i8)
                     .chain(args.iter().cloned())
                     .collect::<Vec<_>>()
@@ -768,7 +769,7 @@ mod test {
     fn call_rust_fn_with_rest_args() {
         let res: Vec<i8> = test_with(|ctx| {
             let func = Function::new(ctx.clone(), |arg1: i8, arg2: i8, args: Rest<i8>| {
-                use std::iter::once;
+                use core::iter::once;
                 once(arg1)
                     .chain(once(arg2))
                     .chain(once(args.len() as i8))

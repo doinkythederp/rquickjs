@@ -25,7 +25,7 @@ convert_case = "0.6.0"
 
 [dependencies.syn]
 version = "2"
-features = ["full","fold","extra-traits"]
+features = ["full", "fold", "extra-traits"]
 
 [dependencies.phf_shared]
 version = "0.11"
@@ -38,7 +38,7 @@ optional = true
 [dependencies.rquickjs-core]
 path = "../core"
 version = "0.6.0"
-features = ["loader"]
+features = []
 
 [dev-dependencies.difference]
 version = "2"
@@ -46,11 +46,11 @@ version = "2"
 [dev-dependencies.rquickjs]
 path = ".."
 version = "0.6.0"
-features = ["macro", "classes", "properties", "futures","phf"]
+features = ["macro", "classes", "properties", "futures", "phf"]
 
-[dev-dependencies.async-std]
-version = "1"
-features = ["attributes"]
+# [dev-dependencies.async-std]
+# version = "1"
+# features = ["attributes"]
 
 [features]
 phf = ["phf_shared", "phf_generator"]

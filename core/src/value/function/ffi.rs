@@ -1,4 +1,4 @@
-use std::panic::AssertUnwindSafe;
+use core::panic::AssertUnwindSafe;
 
 use crate::{
     class::{Class, ClassId, JsClass, Readable, Trace, Tracer},
@@ -6,6 +6,7 @@ use crate::{
     value::function::{Params, StaticJsFunction},
     Ctx, FromJs, Function, Object, Outlive, Result, Value,
 };
+use alloc::boxed::Box;
 pub use mac::static_fn;
 
 use super::Constructor;

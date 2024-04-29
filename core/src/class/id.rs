@@ -1,4 +1,6 @@
-use std::{cell::Cell, sync::Once};
+use core::cell::Cell;
+
+use spin::Once;
 
 use crate::qjs;
 
@@ -36,6 +38,6 @@ impl ClassId {
             let mut id = 0;
             unsafe { qjs::JS_NewClassID(&mut id) };
             self.id.set(id);
-        })
+        });
     }
 }
