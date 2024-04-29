@@ -49,6 +49,7 @@ full = [
     "allocator",
     "either",
     "indexmap",
+    "loader",
     "classes",
     "properties",
     "array-buffer",
@@ -77,6 +78,9 @@ bindgen = ["rquickjs-core/bindgen", "rquickjs-macro?/bindgen"]
 
 # Enable support of parallel execution
 parallel = ["rquickjs-core/parallel"]
+
+# Enable user-defined module loader support
+loader = ["rquickjs-core/loader"]
 
 # Enable user-defined allocator support
 allocator = ["rquickjs-core/allocator"]
