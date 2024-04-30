@@ -169,9 +169,9 @@ fn main() {
     }
 
     // disable pthreads because no_std
-    defines.push(("EMSCRIPTEN".into(), Some("1")));
     if env::var("CARGO_CFG_TARGET_OS").unwrap() == "wasi" {
         // pretend we're emscripten - there are already ifdefs that match
+        defines.push(("EMSCRIPTEN".into(), Some("1")));
         // also, wasi doesn't ahve FE_DOWNWARD or FE_UPWARD
         defines.push(("FE_DOWNWARD".into(), Some("0")));
         defines.push(("FE_UPWARD".into(), Some("0")));
@@ -205,6 +205,99 @@ fn main() {
         );
         env::set_var("CFLAGS", &sysroot);
         add_cflags.push(sysroot);
+    }
+
+    let mut target = env::var("TARGET").unwrap();
+    let embedded = env::var("CARGO_CFG_TARGET_OS").unwrap() == "none";
+    if embedded {
+        let mut target_parts = target.split('-').collect::<Vec<_>>();
+        target_parts[1] = "none";
+        target = target_parts.join("-");
+        println!("Embedded target: {}", target);
+        env::set_var("TARGET", &target);
+
+        // No OS means we have to disable threads by compiling as Emscripten.
+        defines.push(("EMSCRIPTEN".into(), Some("1")));
+
+        if target.starts_with("arm") && target.ends_with("-eabi") {
+            // Constants that I pulled from an ARM header file
+            defines.push(("FE_INEXACT".into(), Some("0x0010")));
+            defines.push(("FE_UNDERFLOW".into(), Some("0x0008")));
+            defines.push(("FE_OVERFLOW".into(), Some("0x0004")));
+            defines.push(("FE_DIVBYZERO".into(), Some("0x0002")));
+            defines.push(("FE_INVALID".into(), Some("0x0001")));
+            defines.push(("FE_FLUSHTOZERO".into(), Some("0x0080")));
+            defines.push(("FE_ALL_EXCEPT".into(), Some("0x009f")));
+            defines.push(("FE_TONEAREST".into(), Some("0x00000000")));
+            defines.push(("FE_UPWARD".into(), Some("0x00400000")));
+            defines.push(("FE_DOWNWARD".into(), Some("0x00800000")));
+            defines.push(("FE_TOWARDZERO".into(), Some("0x00C00000")));
+        }
+
+        let sysroot = env::var("SYSROOT")
+            .map(|s| {
+                let mut sysroot = PathBuf::from(s);
+                sysroot.push("include");
+                sysroot
+            })
+            .unwrap_or_else(|_| {
+                let gcc = env::var("TARGET_GCC").unwrap_or_else(|_| {
+                    if target.starts_with("arm") && target.ends_with("-eabi") {
+                        "arm-none-eabi-gcc".to_string()
+                    } else {
+                        panic!(
+                            "No $SYSROOT or $TARGET_GCC found while compiling embedded target {target}. Set one of these variables so rquickjs can find libc!"
+                        );
+                    }
+                });
+                let gcc_command = Command::new(&gcc).arg("-print-sysroot").output().unwrap();
+                let mut sysroot = String::from_utf8(gcc_command.stdout).unwrap();
+                sysroot = sysroot.trim().to_string();
+
+                if sysroot.is_empty() {
+                    println!("No sysroot, falling back to gcc's search path.");
+
+                    let mut gcc_verbose_command = Command::new(gcc)
+                        .args(["-E", "-Wp,-v", "-"])
+                        .stdin(Stdio::piped())
+                        .stdout(Stdio::null())
+                        .stderr(Stdio::piped())
+                        .spawn()
+                        .unwrap();
+                    drop(gcc_verbose_command.stdin.take());
+
+                    let output = gcc_verbose_command.wait_with_output().unwrap().stderr;
+                    let output_string = String::from_utf8(output).unwrap();
+
+                    let search_path = output_string.split_once("\n#include <...> search starts here:").unwrap().1;
+
+                    // the final path tends to be the right one
+                    let mut include_path = None;
+                    for path in search_path.lines().rev() {
+                        let trimmed = path.trim();
+                        if trimmed.ends_with("/include") {
+                            include_path = Some(PathBuf::from(trimmed));
+                            break;
+                        }
+                    }
+                    include_path.unwrap_or_else(|| {
+                        panic!("Couldn't find sysroot from gcc's search path. Please set $SYSROOT or $TARGET_GCC.")
+                    }).parent().unwrap().to_path_buf()
+
+                } else {
+                    sysroot.into()
+                }
+            });
+
+        let flag = format!("-I{}", sysroot.join("include").display());
+        println!("Using include dir: {flag}");
+        add_cflags.push(flag);
+
+        // add link search dir to cargo
+        println!(
+            "cargo:rustc-link-search=native={}",
+            sysroot.join("lib").display()
+        );
     }
 
     // generating bindings
@@ -307,38 +400,7 @@ where
     K: AsRef<str> + 'a,
     V: AsRef<str> + 'a,
 {
-    let mut target = env::var("TARGET").unwrap();
-    let embedded = env::var("CARGO_CFG_TARGET_OS").unwrap() == "none";
-    if embedded {
-        let mut target_parts = target.split('-').collect::<Vec<_>>();
-        target_parts[1] = "none";
-        target = target_parts.join("-");
-        println!("Embedded target: {}", target);
-        env::set_var("TARGET", &target);
-
-        // No OS means we have to disable threads by compiling as Emscripten.
-        add_cflags.push("-DEMSCRIPTEN=1".to_string());
-
-        let sysroot = env::var("SYSROOT").unwrap_or_else(|_| {
-            let gcc = env::var("TARGET_GCC").unwrap_or_else(|_| {
-                if target.starts_with("arm") && target.ends_with("-eabi") {
-                    "arm-none-eabi-gcc".to_string()
-                } else {
-                    panic!(
-                        "No $SYSROOT or $TARGET_GCC found while compiling embedded target {target}. Set one of these variables so rquickjs can find libc!"
-                    );
-                }
-            });
-            let gcc_command = Command::new(gcc).arg("-print-sysroot").output().unwrap();
-            String::from_utf8(gcc_command.stdout).unwrap()
-        });
-
-        println!("Using include dir: -I{}/include", sysroot.trim());
-
-        add_cflags.push(format!("-I{}/include", sysroot.trim()));
-        // add link search dir to cargo
-        println!("cargo:rustc-link-search=native={}/lib", sysroot.trim());
-    }
+    let target = env::var("TARGET").unwrap();
     let out_dir = out_dir.as_ref();
     let header_file = header_file.as_ref();
 
