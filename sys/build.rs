@@ -307,8 +307,38 @@ where
     K: AsRef<str> + 'a,
     V: AsRef<str> + 'a,
 {
-    env::set_var("TARGET", "armv7a-none-eabi"); // force armv7a-none-eabi target for bindgen
-    let target = env::var("TARGET").unwrap();
+    let mut target = env::var("TARGET").unwrap();
+    let embedded = env::var("CARGO_CFG_TARGET_OS").unwrap() == "none";
+    if embedded {
+        let mut target_parts = target.split('-').collect::<Vec<_>>();
+        target_parts[1] = "none";
+        target = target_parts.join("-");
+        println!("Embedded target: {}", target);
+        env::set_var("TARGET", &target);
+
+        // No OS means we have to disable threads by compiling as Emscripten.
+        add_cflags.push("-DEMSCRIPTEN=1".to_string());
+
+        let sysroot = env::var("SYSROOT").unwrap_or_else(|_| {
+            let gcc = env::var("TARGET_GCC").unwrap_or_else(|_| {
+                if target.starts_with("arm") && target.ends_with("-eabi") {
+                    "arm-none-eabi-gcc".to_string()
+                } else {
+                    panic!(
+                        "No $SYSROOT or $TARGET_GCC found while compiling embedded target {target}. Set one of these variables so rquickjs can find libc!"
+                    );
+                }
+            });
+            let gcc_command = Command::new(gcc).arg("-print-sysroot").output().unwrap();
+            String::from_utf8(gcc_command.stdout).unwrap()
+        });
+
+        println!("Using include dir: -I{}/include", sysroot.trim());
+
+        add_cflags.push(format!("-I{}/include", sysroot.trim()));
+        // add link search dir to cargo
+        println!("cargo:rustc-link-search=native={}/lib", sysroot.trim());
+    }
     let out_dir = out_dir.as_ref();
     let header_file = header_file.as_ref();
 
@@ -340,8 +370,6 @@ where
         .allowlist_function("JS.*")
         .allowlist_function("__JS.*")
         .allowlist_var("JS.*")
-        .clang_arg("-I/opt/homebrew/Cellar/arm-gcc-bin@10/10.3-2021.10_1/bin/../lib/gcc/arm-none-eabi/10.3.1/include")
-        .clang_arg("-I/opt/homebrew/Cellar/arm-gcc-bin@10/10.3-2021.10_1/bin/../lib/gcc/arm-none-eabi/10.3.1/../../../../arm-none-eabi/include")
         .opaque_type("FILE")
         .blocklist_type("FILE")
         .blocklist_function("JS_DumpMemoryUsage");

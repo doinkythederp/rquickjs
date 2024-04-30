@@ -1,4 +1,4 @@
-# rquickjs
+# rquickjs: no_std edition!
 
 [![github](https://img.shields.io/badge/github-delskayn/rquickjs-8da0cb.svg?style=for-the-badge&logo=github)](https://github.com/DelSkayn/rquickjs)
 [![crates](https://img.shields.io/crates/v/rquickjs.svg?style=for-the-badge&color=fc8d62&logo=rust)](https://crates.io/crates/rquickjs)
@@ -7,6 +7,8 @@
 
 This library is a high level bindings the [QuickJS](https://bellard.org/quickjs/) JavaScript engine.
 Its goal is to be an easy to use, and safe wrapper similar to the rlua library.
+
+You will need a nightly Rust toolchain!
 
 **QuickJS** is a small and embeddable JavaScript engine. It supports the _ES2020_ specification including modules, asynchronous generators, proxies and BigInt.
 It optionally supports mathematical extensions such as big decimal floating point numbers (BigDecimal), big binary floating point numbers (BigFloat) and operator overloading.
@@ -50,6 +52,31 @@ It optionally supports mathematical extensions such as big decimal floating poin
   - Support for extending defined classes by JS
 - Easy bindings using proc macro
   (The interfacing between JS and Rust became much easy with `bind` macro)
+
+
+### Embedded compilation
+
+#### `arm-none-eabi` target (e.g. VexOS)
+
+Start by installing the embedded ARM GCC toolchain & Clang using one of the following commands:
+
+- Apt (Debian-based Linux): `sudo apt install gcc-arm-none-eabi clang`
+- Homebrew (macOS): `brew install osx-cross/arm/arm-gcc-bin llvm`
+- Winget (Windows): `winget install -e --id Arm.GnuArmEmbeddedToolchain`, `winget install -e --id LLVM.LLVM`
+
+Make sure `arm-none-eabi-gcc` and `clang` are in your `$PATH`. Then, add this crate:
+
+```
+cargo add --git https://github.com/doinkythederp/rquickjs.git -F rust-alloc
+```
+
+#### Other targets
+
+Install Clang and your target's sysroot (presumably using the GCC for your target). Set the `$TARGET_GCC` environment variable to your target's GCC, OR the `$SYSROOT` variable to your sysroot path. Make sure `clang` is in your `$PATH`. Then, add this crate:
+
+```
+cargo add --git https://github.com/doinkythederp/rquickjs.git -F rust-alloc
+```
 
 ## Development status
 
